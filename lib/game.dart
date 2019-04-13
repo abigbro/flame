@@ -15,7 +15,7 @@ import 'position.dart';
 ///
 /// Subclass this to implement the [update] and [render] methods.
 /// Flame will deal with calling these methods properly when the game's widget is rendered.
-abstract class Game  {
+abstract class Game {
   // Widget Builder for this Game
   final builder = WidgetBuilder();
 
@@ -44,116 +44,12 @@ abstract class Game  {
   /// Returns the game widget. Put this in your structure to start rendering and updating the game.
   /// You can add it directly to the runApp method or inside your widget structure (if you use vanilla screens and widgets).
   Widget get widget => builder.build(this);
-
 }
 
 class WidgetBuilder {
   Offset offset = Offset.zero;
-  Widget build(Game game) => Center(
-      child: Directionality(
-          textDirection: TextDirection.ltr,
-          child: _GameRenderObjectWidget(game)));
-}
-
-class _GameRenderObjectWidget extends SingleChildRenderObjectWidget {
-  final Game game;
-
-  _GameRenderObjectWidget(this.game);
-
-  @override
-  RenderObject createRenderObject(BuildContext context) =>
-      _GameRenderBox(context, this.game);
-
-  @override
-  void updateRenderObject(BuildContext context, _GameRenderBox _gameRenderBox) {
-    _gameRenderBox.game = game;
-  }
-}
-
-class _GameRenderBox extends RenderBox with WidgetsBindingObserver {
-  BuildContext context;
-
-  Game game;
-
-  int _frameCallbackId;
-
-  Duration previous = Duration.zero;
-
-  _GameRenderBox(this.context, this.game);
-
-  @override
-  bool get sizedByParent => true;
-
-  @override
-  void performResize() {
-    super.performResize();
-    game.resize(constraints.biggest);
-  }
-
-  @override
-  void attach(PipelineOwner owner) {
-    super.attach(owner);
-    _scheduleTick();
-    _bindLifecycleListener();
-  }
-
-  @override
-  void detach() {
-    super.detach();
-    _unscheduleTick();
-    _unbindLifecycleListener();
-  }
-
-  void _scheduleTick() {
-    _frameCallbackId = SchedulerBinding.instance.scheduleFrameCallback(_tick);
-  }
-
-  void _unscheduleTick() {
-    SchedulerBinding.instance.cancelFrameCallbackWithId(_frameCallbackId);
-  }
-
-  void _tick(Duration timestamp) {
-    if (!attached) return;
-    _scheduleTick();
-    _update(timestamp);
-    markNeedsPaint();
-  }
-
-  void _update(Duration now) {
-    double dt = _computeDeltaT(now);
-    game._recordDt(dt);
-    game.update(dt);
-  }
-
-  double _computeDeltaT(Duration now) {
-    Duration delta = now - previous;
-    if (previous == Duration.zero) {
-      delta = Duration.zero;
-    }
-    previous = now;
-    return delta.inMicroseconds / Duration.microsecondsPerSecond;
-  }
-
-  @override
-  void paint(PaintingContext context, Offset offset) {
-    context.canvas.save();
-    context.canvas.translate(game.builder.offset.dx, game.builder.offset.dy);
-    game.render(context.canvas);
-    context.canvas.restore();
-  }
-
-  void _bindLifecycleListener() {
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  void _unbindLifecycleListener() {
-    WidgetsBinding.instance.removeObserver(this);
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    game.lifecycleStateChange(state);
-  }
+  Widget build(Game game) => Directionality(
+      textDirection: TextDirection.ltr, child: EmbeddedGameWidget(game));
 }
 
 /// This is a more complete and opinionated implementation of Game.
@@ -167,7 +63,7 @@ abstract class BaseGame extends Game {
       OrderedSet(Comparing.on((c) => c.priority()));
 
   /// Components added by the [addLater] method
-  List<Component> _addLater = [];
+  final List<Component> _addLater = [];
 
   /// Current screen size, updated every resize via the [resize] method hook
   Size size;
@@ -176,7 +72,7 @@ abstract class BaseGame extends Game {
   Position camera = Position.empty();
 
   /// List of deltas used in debug mode to calculate FPS
-  List<double> _dts = [];
+  final List<double> _dts = [];
 
   /// This method is called for every component added, both via [add] and [addLater] methods.
   ///
@@ -194,8 +90,8 @@ abstract class BaseGame extends Game {
   ///
   /// Also calls [preAdd], witch in turn sets the current size on the component (because the resize hook won't be called until a new resize happens).
   void add(Component c) {
-    this.preAdd(c);
-    this.components.add(c);
+    preAdd(c);
+    components.add(c);
   }
 
   /// Registers a component to be added on the components on the next tick.
@@ -203,8 +99,8 @@ abstract class BaseGame extends Game {
   /// Use this to add components in places where a concurrent issue with the update method might happen.
   /// Also calls [preAdd] for the component added, immediately.
   void addLater(Component c) {
-    this.preAdd(c);
-    this._addLater.add(c);
+    preAdd(c);
+    _addLater.add(c);
   }
 
   /// This implementation of render basically calls [renderComponent] for every component, making sure the canvas is reset for each one.
@@ -281,12 +177,12 @@ abstract class BaseGame extends Game {
   /// So it's technically updates per second, but the relation between updates and renders is 1:1.
   /// Returns 0 if empty.
   double fps([int average = 1]) {
-    List<double> dts = _dts.sublist(math.max(0, _dts.length - average));
+    final List<double> dts = _dts.sublist(math.max(0, _dts.length - average));
     if (dts.isEmpty) {
       return 0.0;
     }
-    double dtSum = dts.reduce((s, t) => s + t);
-    double averageDt = dtSum / average;
+    final double dtSum = dts.reduce((s, t) => s + t);
+    final double averageDt = dtSum / average;
     return 1 / averageDt;
   }
 
@@ -314,50 +210,136 @@ class SimpleGame extends BaseGame {
 /// Provided it with a [Game] instance for your game and the optional size of the widget.
 /// Creating this without a fixed size might mess up how other components are rendered with relation to this one in the tree.
 /// You can bind Gesture Recognizers immediately around this to add controls to your widgets, with easy coordinate conversions.
-class EmbeddedGameWidget extends StatefulWidget {
+class EmbeddedGameWidget extends LeafRenderObjectWidget {
   final Game game;
   final Position size;
-
   EmbeddedGameWidget(this.game, {this.size});
 
   @override
-  State<StatefulWidget> createState() {
-    return _EmbeddedGameWidgetState();
+  RenderBox createRenderObject(BuildContext context) {
+    if (size != null) {
+      return ConstrainedGameBox(
+        GameRenderBox(context, game),
+        widgetSize: size,
+      );
+    }
+    return GameRenderBox(context, game);
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, RenderBox renderObject) {
+    if (size != null) {
+      final ConstrainedGameBox _renderObject =
+          renderObject as ConstrainedGameBox;
+      _renderObject
+        ..game = GameRenderBox(context, game)
+        ..widgetSize = size;
+    } else {
+      final GameRenderBox _renderObject = renderObject as GameRenderBox;
+      _renderObject.game = game;
+    }
   }
 }
 
-class _EmbeddedGameWidgetState extends State<EmbeddedGameWidget> {
-  _EmbeddedGameWidgetState();
+class ConstrainedGameBox extends RenderConstrainedBox {
+  GameRenderBox game;
+  Position widgetSize;
+
+  ConstrainedGameBox(this.game, {this.widgetSize})
+      : super(
+            child: game,
+            additionalConstraints: BoxConstraints(
+                minWidth: widgetSize.x,
+                maxWidth: widgetSize.x,
+                minHeight: widgetSize.y,
+                maxHeight: widgetSize.y));
+}
+
+class GameRenderBox extends RenderBox with WidgetsBindingObserver {
+  BuildContext context;
+
+  Game game;
+
+  int _frameCallbackId;
+
+  Duration previous = Duration.zero;
+
+  GameRenderBox(this.context, this.game);
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback(_afterLayout);
+  bool get sizedByParent => true;
+
+  @override
+  void performResize() {
+    super.performResize();
+    game.resize(constraints.biggest);
   }
 
   @override
-  void didUpdateWidget(EmbeddedGameWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    WidgetsBinding.instance.addPostFrameCallback(_afterLayout);
-  }
-
-  void _afterLayout(_) {
-    RenderBox box = context.findRenderObject();
-    widget.game.builder.offset = box.localToGlobal(Offset.zero);
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _scheduleTick();
+    _bindLifecycleListener();
   }
 
   @override
-  Widget build(BuildContext context) {
-    if (widget.size == null) {
-      return widget.game.widget;
+  void detach() {
+    super.detach();
+    _unscheduleTick();
+    _unbindLifecycleListener();
+  }
+
+  void _scheduleTick() {
+    _frameCallbackId = SchedulerBinding.instance.scheduleFrameCallback(_tick);
+  }
+
+  void _unscheduleTick() {
+    SchedulerBinding.instance.cancelFrameCallbackWithId(_frameCallbackId);
+  }
+
+  void _tick(Duration timestamp) {
+    if (!attached) {
+      return;
     }
-    return Container(
-      child: widget.game.widget,
-      constraints: BoxConstraints(
-          minWidth: widget.size.x,
-          maxWidth: widget.size.x,
-          minHeight: widget.size.y,
-          maxHeight: widget.size.y),
-    );
+    _scheduleTick();
+    _update(timestamp);
+    markNeedsPaint();
+  }
+
+  void _update(Duration now) {
+    final double dt = _computeDeltaT(now);
+    game._recordDt(dt);
+    game.update(dt);
+  }
+
+  double _computeDeltaT(Duration now) {
+    Duration delta = now - previous;
+    if (previous == Duration.zero) {
+      delta = Duration.zero;
+    }
+    previous = now;
+    return delta.inMicroseconds / Duration.microsecondsPerSecond;
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    context.canvas.save();
+    context.canvas.translate(
+        game.builder.offset.dx + offset.dx, game.builder.offset.dy + offset.dy);
+    game.render(context.canvas);
+    context.canvas.restore();
+  }
+
+  void _bindLifecycleListener() {
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  void _unbindLifecycleListener() {
+    WidgetsBinding.instance.removeObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    game.lifecycleStateChange(state);
   }
 }
