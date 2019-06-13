@@ -1,3 +1,12 @@
+## 0.13.0
+- Downgrading flame support to stable channel.
+
+## 0.12.2
+- Added more functionality to the Position class (thanks, @illiapoplawski)
+
+## 0.12.1
+- Fixed PositionComponent#setByRect to comply with toRect (thanks, @illiapoplawski)
+
 ## 0.12.0
 - Updating flutter_svg and pubspec to support the latest flutter version (1.6.0)
 - Adding Flare Support
