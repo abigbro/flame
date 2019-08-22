@@ -1,4 +1,4 @@
-[![Pub](https://img.shields.io/pub/v/flame.svg?style=popout)](https://pub.dartlang.org/packages/flame) [![Build Status - Travis](https://travis-ci.org/luanpotter/flame.svg?branch=master)](https://travis-ci.org/luanpotter/flame) [![Discord](https://img.shields.io/discord/509714518008528896.svg)](https://discord.gg/pxrBmy4)
+[![Pub](https://img.shields.io/pub/v/flame.svg?style=popout)](https://pub.dartlang.org/packages/flame) [![Build Status - Travis](https://travis-ci.org/flame-engine/flame.svg?branch=master)](https://travis-ci.org/flame-engine/flame) [![Discord](https://img.shields.io/discord/509714518008528896.svg)](https://discord.gg/pxrBmy4)
 
 # :fire: flame
 
@@ -25,6 +25,10 @@ You can use whatever ones you want, as they are all somewhat independent.
 Support us by becoming a patron on Patreon
 
 [![Patreon](https://c5.patreon.com/external/logo/become_a_patron_button.png)](https://www.patreon.com/fireslime)
+
+Or making a single donation buying us a coffee:
+
+[![Buy Me A Coffee](https://user-images.githubusercontent.com/835641/60540201-fcd7fa00-9ce4-11e9-87ec-1e98568e9f58.png)](https://www.buymeacoffee.com/fireslime)
 
 You can also show support by showing on your repository that your game is made with Flame by using one of the following badges:
 
@@ -58,14 +62,14 @@ Just drop it in your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flame: ^0.13.0
+  flame: ^0.15.1
 ```
 
 And start using it!
 
 __Important__
 
-We strive to keep Flame working on the Flutter's stable channel, currently on version 1.5.4-hotfix.2, be sure to check which channel are you using if you encounter any trouble.
+We strive to keep Flame working on the Flutter's stable channel, currently on version v1.7.8+hotfix.2, be sure to check which channel are you using if you encounter any trouble.
 
 ## Documentation
 
@@ -151,7 +155,7 @@ If you want to load an image and render it on the `Canvas`, you can use the `Spr
 ```dart
     import 'package:flame/sprite.dart';
 
-    Sprite sprite = new Sprite('player.png');
+    Sprite sprite = Sprite('player.png');
 
     // in your render loop
     sprite.render(canvas, width, height);
@@ -175,10 +179,10 @@ The most commonly used implementation, `SpriteComponent`, can be created with a 
     import 'package:flame/components/component.dart';
 
     // on your constructor or init logic
-    Sprite sprite = new Sprite('player.png');
+    Sprite sprite = Sprite('player.png');
 
     const size = 128.0;
-    final player = new SpriteComponent.fromSprite(size, size, sprite); // width, height, sprite
+    final player = SpriteComponent.fromSprite(size, size, sprite); // width, height, sprite
 
     // screen coordinates
     player.x = ... // 0 by default
@@ -220,7 +224,7 @@ To start, just add your game widget directly to your runApp, like so:
 
 ```dart
     main() {
-        Game game = new MyGameImpl();
+        Game game = MyGameImpl();
         runApp(game.widget);
     }
 ```

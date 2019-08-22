@@ -5,8 +5,10 @@ import 'package:flame/animation.dart';
 
 class AnimationComponent extends PositionComponent {
   Animation animation;
+  bool destroyOnFinish = false;
 
-  AnimationComponent(double width, double height, this.animation) {
+  AnimationComponent(double width, double height, this.animation,
+      {this.destroyOnFinish = false}) {
     this.width = width;
     this.height = height;
   }
@@ -22,6 +24,7 @@ class AnimationComponent extends PositionComponent {
     double textureY = 0.0,
     double textureWidth,
     double textureHeight,
+    this.destroyOnFinish = false,
   }) {
     this.width = width;
     this.height = height;
@@ -39,9 +42,12 @@ class AnimationComponent extends PositionComponent {
   bool loaded() => animation.loaded();
 
   @override
+  bool destroy() => destroyOnFinish && animation.isLastFrame;
+
+  @override
   void render(Canvas canvas) {
     prepareCanvas(canvas);
-    animation.getSprite().render(canvas, width, height);
+    animation.getSprite().render(canvas, width: width, height: height);
   }
 
   @override

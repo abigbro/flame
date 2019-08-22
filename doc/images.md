@@ -15,13 +15,13 @@ You can create a `Sprite` giving it a pre-loaded `Image` via the `fromImage` con
 For example, this will create a sprite representing the whole image of the file passed, automatically triggering its loading:
 
 ```dart
-    Sprite player = new Sprite('player.png');
+    Sprite player = Sprite('player.png');
 ```
 
 You could also specify the coordinates in the original image where the sprite is located; this allows you to use sprite sheets and reduce the number of images in memory; for example:
 
 ```dart
-    Sprite playerFrame = new Sprite('player.png', x = 32.0, width = 16.0);
+    Sprite playerFrame = Sprite('player.png', x = 32.0, width = 16.0);
 ```
 
 The default values are `0.0` for `x` and `y` and `null` for `width` and `height` (meaning it will use the full width/height of the source image).
@@ -29,7 +29,7 @@ The default values are `0.0` for `x` and `y` and `null` for `width` and `height`
 The `Sprite` class has a `loaded` method that returns whether the image has been loaded, and a render method, that allows you to render the image into a `Canvas`:
 
 ```dart
-    Sprite block = new Sprite('block.png');
+    Sprite block = Sprite('block.png');
 
     // in your render method
     block.render(canvas, 16.0, 16.0); //canvas, width, height
@@ -38,6 +38,12 @@ The `Sprite` class has a `loaded` method that returns whether the image has been
 You must pass the size to the render method, and the image will be resized accordingly.
 
 The render method will do nothing while the sprite has not been loaded, so you don't need to worry. The image is cached in the `Images` class, so you can safely create many sprites with the same fileName.
+
+All render methods from the Sprite class can receive a `Paint` instance on the optional named parameter `overridePaint` that parameter will override the current `Sprite` paint instance for that render call.
+
+Sprites can also be used as widgets, to do so, just use `Flame.util.spriteAsWidget`
+
+A complete example of using sprite as widegets can be found [here](examples/animation_widget).
 
 ## Svg
 
@@ -70,11 +76,11 @@ To load and draw an image, you can use the `load` method, like so:
 
     // inside an async context
     Image image = await Flame.images.load('player.png');
-    
+
     // or
     Flame.images.load('player.png').then((Image image) {
-      var paint = new Paint()..color = new Color(0xffffffff);
-      var rect = new Rect.fromLTWH(0.0, 0.0, image.width.toDouble(), image.height.toDouble());
+      var paint = Paint()..color = Color(0xffffffff);
+      var rect = Rect.fromLTWH(0.0, 0.0, image.width.toDouble(), image.height.toDouble());
       canvas.drawImageRect(image, rect, rect, paint);
     });
 ```
@@ -94,7 +100,27 @@ The Animation class helps you create a cyclic animation of sprites.
 You can create it by passing a list of equal sized sprites and the stepTime (that is, how many seconds it takes to move to the next frame):
 
 ```dart
-  Animation a = new Animation.spriteList(sprites, stepTime: 0.02);
+  Animation a = Animation.spriteList(sprites, stepTime: 0.02);
+```
+
+After the animation is created, you need to call its `update` method and render the current frame's sprite on your game instance, for example:
+
+```
+class MyGame extends Game {
+  Animation a;
+
+  MyGame() {
+    a = Animation(...);
+  }
+
+  void update(double dt) {
+    a.update(dt);
+  }
+
+  void render(Canvas c) {
+    a.getSprite().render(c);
+  }
+}
 ```
 
 A better alternative to generate a list of sprites is to use the `sequenced` constructor:
@@ -110,6 +136,7 @@ In which you pass the file name, the number of frames and the sprite sheet is au
 * textureY : y position on the original image to start (defaults to 0)
 * textureWidth : width of each frame (defaults to null, that is, full width of the sprite sheet)
 * textureHeight : height of each frame (defaults to null, that is, full height of the sprite sheet)
+* destroyOnFinish : a bool indicating if this AnimationComponent should be destroyed when the animation has reached its end
 
 So, in our example, we are saying that we have 8 frames for our player animation, and they are displayed in a row. So if the player height is also 16 pixels, the sprite sheet is 128x16, containing 8 16x16 frames.
 
@@ -129,6 +156,11 @@ _Note: trimmed sprite sheets are not supported by flame, so if you export your s
 Animations, after created, have an update and render method; the latter renders the current frame, and the former ticks the internal clock to update the frames.
 
 Animations are normally used inside `AnimationComponent`s, but custom components with several Animations can be created as well.
+
+
+Animations can also be used as widgets, to do so, just use `Flame.util.animationAsWidget`
+
+A complete example of using animations as widegets can be found [here](examples/animation_widget).
 
 ## FlareAnimation
 
@@ -175,3 +207,31 @@ class MyGame extends Game {
 ```
 
 FlareAnimations are normally used inside `FlareComponent`s, that way `BaseGame` will handle calling `render` and `update` automatically.
+
+## SpriteSheet
+
+Sprite sheets are big images with several frames of the same sprite on it and is a very good way to organize and keep your animations stored. Flame provides a very simple utility class to deal with SpriteSheets, with it you can load your sprite sheet image and extract animations from it. Bellow is a very simple example of using it:
+
+```dart
+import 'package:flame/spritesheet.dart';
+
+final spritesheet = SpriteSheet(
+  imageName: 'spritesheet.png',
+  textureWidth: 16,
+  textureHeight: 16,
+  columns: 10,
+  rows: 2,
+);
+
+final animation = spritesheet.createAnimation(0, stepTime: 0.1);
+```
+
+Now you can use the animation directly or use it in an animation component.
+
+You can also get a single frame of the sprite sheet using the `getSprite` method:
+
+```dart
+spritesheet.getSprite(0, 0) // row, column;
+```
+
+You can see a full example of the SpriteSheet class [here](doc/examples/spritesheet).

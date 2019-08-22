@@ -1,3 +1,38 @@
+## [next]
+
+## 0.15.1
+- Bumped version of svg dependency
+- Fixed warnings
+
+## 0.15.0
+- Refactoring ParallaxComponent (thanks @spydon)
+- Fixing flare animation with embed images
+- Adding override paint parameter to Sprite, and refactoring it have named optional parameters
+
+## 0.14.2
+- Refactoring BaseGame debugMode
+- Adding SpriteSheet class
+- Adding Flame.util.spriteAsWidget
+- Fixing AnimationComponent.empty()
+- Fixing FlameAudio.loopLongAudio
+
+## 0.14.1
+- Fixed build on travis
+- Updated readme badges
+- Fixed changelog
+- Fixed warning on audiopool, added audiopool example in docs
+
+## 0.14.0
+- Adding Timer#isRunning method
+- Adding Timer#progress getter
+- Updating Flame to work with Flutter >= 1.6.0
+
+## 0.13.1
+- Adding Timer utility class
+- Adding `destroyOnFinish` flag for AnimationComponent
+- Fixing release mode on examples that needed screen size
+- Bumping dependencies versions (audioplayers and path_provider)
+
 ## 0.13.0
 - Downgrading flame support to stable channel.
 
